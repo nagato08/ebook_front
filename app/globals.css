@@ -1,26 +1,161 @@
 @import "tailwindcss";
 
+/* active la variante `dark:` via la classe .dark sur <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================================
+   EbookGen — design tokens (editorial publishing + AI)
+   Palette: encre / papier / violet (créa-IA) / ambre (CTA-prix) / émeraude (paiement)
+   ============================================================ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --paper: #ffffff; /* fond blanc */
+  --paper-2: #f5f6f8; /* surface alternée (gris très clair neutre) */
+  --ink: #15130f; /* texte principal (near-black chaud) */
+  --ink-soft: #5a5650; /* texte secondaire */
+  --line: #e8e9ed; /* bordures / séparateurs */
+
+  --brand: #5b21b6; /* violet — créativité / IA */
+  --brand-600: #6d28d9;
+  --brand-100: #ede9fe;
+
+  --accent: #f59e0b; /* ambre — CTA / prix / crédits */
+  --accent-600: #d97706;
+
+  --money: #059669; /* émeraude — Mobile Money / succès */
+}
+
+/* Mode sombre : variantes tonales désaturées (pas une inversion brute) */
+.dark {
+  color-scheme: dark;
+  --paper: #14120e; /* fond near-black chaud */
+  --paper-2: #1f1c16; /* surface alternée */
+  --ink: #f6f2ea; /* texte near-white chaud */
+  --ink-soft: #b3aa9a; /* texte secondaire (>= 4.5:1 sur paper) */
+  --line: #2c2820; /* bordures */
+
+  --brand: #a78bfa; /* violet plus clair pour fond sombre */
+  --brand-600: #8b5cf6;
+  --brand-100: #2a2440; /* surface violette sombre (badges, halo) */
+
+  --accent: #fbbf24;
+  --accent-600: #f59e0b;
+
+  --money: #34d399;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-600: var(--brand-600);
+  --color-brand-100: var(--brand-100);
+  --color-accent: var(--accent);
+  --color-accent-600: var(--accent-600);
+  --color-money: var(--money);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-fraunces);
+  --font-mono: var(--font-geist-mono);
+
+  --radius-card: 1.25rem;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* respecte les préférences de mouvement réduit */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* utilitaire: grain papier subtil pour les sections claires */
+.bg-grain {
+  background-image: radial-gradient(
+    rgba(21, 19, 15, 0.025) 1px,
+    transparent 1px
+  );
+  background-size: 4px 4px;
+}
+.dark .bg-grain {
+  background-image: radial-gradient(
+    rgba(246, 242, 234, 0.03) 1px,
+    transparent 1px
+  );
+}
+
+/* entrée discrète (fade + montée) — utilisée sur la page de création */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Lignes du livre en cours de génération (effet "écriture") */
+@keyframes book-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scaleX(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+.book-line-loader > div {
+  transform-origin: left;
+}
+
+/* état initial des éléments révélés au scroll (avant GSAP).
+   .js-anim ajouté par le JS => sans JS, le contenu reste visible. */
+.js-anim [data-reveal],
+.js-anim .gsap-fade {
+  opacity: 0;
+}
+/* mouvement réduit : ne jamais masquer le contenu */
+@media (prefers-reduced-motion: reduce) {
+  .js-anim [data-reveal],
+  .js-anim .gsap-fade {
+    opacity: 1 !important;
+  }
+}
+
+/* Transition de thème en cercle (View Transitions API).
+   On désactive le cross-fade par défaut : seul le nouveau calque
+   est révélé via un clip-path animé en JS. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 9999;
 }
