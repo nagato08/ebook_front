@@ -1,0 +1,17 @@
+# Override PRODUCTION (VPS derriere Nginx Proxy Manager).
+# Usage sur le VPS :
+#   NEXT_PUBLIC_API_URL=https://api.ton-domaine \
+#     docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+services:
+  frontend:
+    container_name: ebook-frontend
+    networks:
+      - proxy
+    # NPM joint le conteneur via le reseau "proxy" -> pas de port sur l'hote.
+    ports: !reset []
+
+networks:
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:-proxy}
