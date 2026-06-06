@@ -4,9 +4,12 @@
 FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 
-# URL de l'API backend — inlinee au build (variable NEXT_PUBLIC_*)
+# Variables NEXT_PUBLIC_* — inlinees au build
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+# URL publique du site (SEO: sitemap, robots, Open Graph, canonical)
+ARG NEXT_PUBLIC_SITE_URL
+ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 
 COPY package*.json ./
 RUN npm ci

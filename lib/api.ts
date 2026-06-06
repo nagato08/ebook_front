@@ -175,7 +175,7 @@ export const api = {
 
   // --- payments ---
   packs: () => request<CreditPack[]>("/payments/packs"),
-  deposit: (data: { packId: string; phoneNumber: string }) =>
+  deposit: (data: { packId: string; phoneNumber?: string }) =>
     request<{
       depositId: string;
       status: string;

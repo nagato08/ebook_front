@@ -54,7 +54,8 @@ export default function BillingPage() {
   );
 
   const phoneDigits = phone.replace(/[^0-9]/g, "");
-  const canPay = !!selected && phoneDigits.length >= 8 && !submitting;
+  // Numero optionnel: GeniusPay le demande sur sa page de paiement.
+  const canPay = !!selected && !submitting;
 
   const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +65,8 @@ export default function BillingPage() {
     try {
       const res = await api.deposit({
         packId: selected.id,
-        phoneNumber: phoneDigits,
+        // Envoye seulement si saisi (pre-remplissage GeniusPay).
+        ...(phoneDigits.length >= 8 ? { phoneNumber: phoneDigits } : {}),
       });
       if (res.checkoutUrl) {
         // Redirection vers la page de paiement hebergee GeniusPay.
@@ -229,7 +231,8 @@ export default function BillingPage() {
           <div className="mt-4 space-y-4">
             <div>
               <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-ink">
-                Numéro Mobile Money
+                Numéro Mobile Money{" "}
+                <span className="font-normal text-ink-soft">(optionnel)</span>
               </label>
               <input
                 id="phone"
@@ -242,7 +245,8 @@ export default function BillingPage() {
                 className="h-12 w-full rounded-xl border border-line bg-paper px-4 text-sm text-ink outline-none transition-colors placeholder:text-ink-soft/60 focus:border-brand focus:ring-2 focus:ring-brand/25"
               />
               <p className="mt-1.5 text-xs text-ink-soft">
-                L’opérateur est détecté automatiquement.
+                Optionnel — vous pourrez aussi le saisir sur la page de
+                paiement. L’opérateur est détecté automatiquement.
               </p>
             </div>
 
