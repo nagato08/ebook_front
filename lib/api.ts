@@ -2,6 +2,7 @@
 // Le token JWT est stocké côté client (localStorage) après login/signup.
 
 import type {
+  AppStatus,
   AuthResponse,
   Book,
   Chapter,
@@ -65,6 +66,16 @@ async function request<T>(
 }
 
 export const api = {
+  // --- statut / maintenance ---
+  // Public. Renvoie { maintenance, admin } (admin = le token porte l'email admin).
+  getStatus: () => request<AppStatus>("/status"),
+  // Admin only. Bascule le mode maintenance.
+  setMaintenance: (on: boolean) =>
+    request<{ maintenance: boolean }>("/maintenance", {
+      method: "POST",
+      body: JSON.stringify({ on }),
+    }),
+
   // --- auth ---
   register: (data: { email: string; password: string; name?: string }) =>
     request<AuthResponse>("/auth/register", {

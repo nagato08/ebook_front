@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Fraunces } from "next/font/google";
 import "./globals.css";
+import MaintenanceGate from "@/components/MaintenanceGate";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -77,7 +78,7 @@ export default function RootLayout({
         >
           Passer au contenu
         </a>
-        {children}
+        <MaintenanceGate>{children}</MaintenanceGate>
       </body>
     </html>
   );

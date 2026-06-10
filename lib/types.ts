@@ -12,6 +12,12 @@ export interface User {
   emailVerified?: boolean;
 }
 
+// État global du site (mode maintenance). `admin` = le porteur du token est l'admin.
+export interface AppStatus {
+  maintenance: boolean;
+  admin: boolean;
+}
+
 export interface Chapter {
   id: string;
   bookId: string;
