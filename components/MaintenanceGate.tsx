@@ -53,8 +53,14 @@ export default function MaintenanceGate({
   const maintenance = status?.maintenance ?? false;
   const admin = status?.admin ?? false;
 
-  const onLogin = pathname?.startsWith("/login") ?? false;
-  const blocked = maintenance && !admin && !onLogin;
+  // Pendant la maintenance, le visiteur reste sur la page maintenance PARTOUT
+  // (même si l'app le redirige vers /login). Échappatoire admin pour se
+  // reconnecter sur un nouvel appareil : /login?admin=1
+  const adminEscape =
+    pathname === "/login" &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("admin") === "1";
+  const blocked = maintenance && !admin && !adminEscape;
 
   if (blocked) return <MaintenanceScreen />;
 
