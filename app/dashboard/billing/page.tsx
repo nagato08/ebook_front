@@ -41,6 +41,8 @@ export default function BillingPage() {
 
   const [method, setMethod] = useState<Method>("online");
   const [manual, setManual] = useState<ManualInfo | null>(null);
+  // Le paiement en ligne + le pack "test" sont reservés aux admins pour l'instant.
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Online
   const [phone, setPhone] = useState("");
@@ -48,12 +50,20 @@ export default function BillingPage() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([api.packs(), api.manualInfo().catch(() => null)])
-      .then(([d, m]) => {
+    Promise.all([
+      api.packs(),
+      api.manualInfo().catch(() => null),
+      api.getStatus().catch(() => null),
+    ])
+      .then(([d, m, s]) => {
         if (!active) return;
-        setPacks(d);
+        const admin = !!s?.admin;
+        setIsAdmin(admin);
+        // Masque le pack "test" aux simples utilisateurs (admins le voient).
+        const visible = admin ? d : d.filter((p) => p.id !== "test");
+        setPacks(visible);
         setSelectedId(
-          d.find((p) => p.id === POPULAR_ID)?.id ?? d[0]?.id ?? null,
+          visible.find((p) => p.id === POPULAR_ID)?.id ?? visible[0]?.id ?? null,
         );
         setManual(m && m.enabled ? m : null);
       })
@@ -72,6 +82,16 @@ export default function BillingPage() {
     () => packs.find((p) => p.id === selectedId) ?? null,
     [packs, selectedId],
   );
+
+  // Paiement en ligne réservé aux admins (sauf si aucun manuel dispo -> fallback).
+  const showManual = !!manual;
+  const showOnline = isAdmin || !showManual;
+  const showToggle = showOnline && showManual;
+  const effectiveMethod: Method = showToggle
+    ? method
+    : showOnline
+      ? "online"
+      : "manual";
 
   const phoneDigits = phone.replace(/[^0-9]/g, "");
 
@@ -251,8 +271,8 @@ export default function BillingPage() {
             )}
           </div>
 
-          {/* Sélecteur de méthode (si paiement manuel dispo) */}
-          {manual && (
+          {/* Sélecteur de méthode (uniquement si les 2 sont dispo = admin) */}
+          {showToggle && (
             <div className="mt-4 grid grid-cols-2 gap-2 rounded-full border border-line bg-paper p-1">
               <MethodTab
                 active={method === "online"}
@@ -275,8 +295,15 @@ export default function BillingPage() {
             </div>
           )}
 
-          {/* Contenu selon la méthode */}
-          {method === "online" || !manual ? (
+          {/* Contenu selon la méthode effective */}
+          {effectiveMethod === "manual" && manual ? (
+            <ManualForm
+              info={manual}
+              pack={selected}
+              error={error}
+              setError={setError}
+            />
+          ) : (
             <OnlineForm
               phone={phone}
               setPhone={setPhone}
@@ -284,13 +311,6 @@ export default function BillingPage() {
               error={error}
               canPay={!!selected && !submitting}
               onSubmit={handlePay}
-            />
-          ) : (
-            <ManualForm
-              info={manual}
-              pack={selected}
-              error={error}
-              setError={setError}
             />
           )}
         </aside>
