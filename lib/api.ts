@@ -202,6 +202,21 @@ export const api = {
       `/payments/deposit/${depositId}/status`,
     ),
 
+  // Infos paiement manuel (numero MoMo de l'admin a afficher).
+  manualInfo: () =>
+    request<{
+      enabled: boolean;
+      number: string;
+      name: string;
+      operators: { code: string; displayName: string }[];
+    }>("/payments/manual-info"),
+  // Soumet un paiement manuel (preuve: numero payeur + ID transaction).
+  payManual: (data: { packId: string; senderPhone: string; txId: string }) =>
+    request<{ depositId: string; status: string; message: string }>(
+      "/payments/manual",
+      { method: "POST", body: JSON.stringify(data) },
+    ),
+
   // --- profile ---
   updateProfile: (name: string) =>
     request<User>("/users/me", {
